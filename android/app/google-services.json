@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "671163813815",
+    "project_id": "fcmpractice-510ca",
+    "storage_bucket": "fcmpractice-510ca.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:671163813815:android:1dd24d19b0701762a26232",
+        "android_client_info": {
+          "package_name": "com.example.fcm_practice"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "671163813815-c67q72sta4fi8apmbnmvbpgioojioipm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTPP9Spcv6VsOHrB_gOpuDf9z-QqIS3nc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "671163813815-c67q72sta4fi8apmbnmvbpgioojioipm.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "671163813815-8e5ar3gq7v1ajhsoruv0735drc0m1pof.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.fcmPractice"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
