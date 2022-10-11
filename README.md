@@ -35,7 +35,60 @@ void main() async {
 5. 파이어베이스 클라우드 메시징 설치
    https://firebase.flutter.dev/docs/messaging/overview/
 
-6. 로컬 노티피케이션 및 백그라운드 패키지 설치
+   장치의 상태에 따라 수신 메시지가 다르게 처리된다.  
+   이러한 시나리오와 FCM 을 자신의 애플리케이션에 통합하는 방법을 이해하려면 먼저 장치가 있을 수 있는 다양한 상태를 설정하는 것이 중요하다.
+   |상태|설명|
+   |--------||-------------------------------------------------------------|
+   |foreground|응용 프로그램이 열려 있을 때 보기 및 사용 중입니다|
+   |background|응용 프로그램이 열려 있으나 최소화된 상태, 즉 이는 일반적으로 사용자가 기기의 홈버튼을 눌렀거나 앱 전환기를 통해 다른 앱으로 전환하는 등 상태|
+   |종료|기기가 잠겨있거나 애플리케이션이 실행되지 않을 때. 사용자는 기기의 앱 전환 UI를 통해 "스와이프하여 제거"하거나 탭(웹)을 닫아 앱을 종료할 수 있다.|
+
+6. `애플리케이션이 FCM을 통해 메시지 페이로드를 수신하기 전에 충족해야 하는 몇 가지 전제 조건`
+   - 애플리케이션은 FCM에 등록할 수 있도록 한 번 이상 열려 있어야 합니다.
+   - iOS에서, 사용자가 앱 스위처에서 애플리케이션을 쓸어버리면 백그라운드 메시지가 다시 작동하기 시작하려면 수동으로 다시 열어야 합니다.
+   - Android에서, 사용자가 기기 `설정`에서 앱을 `강제 종료`하는 경우 메시지가 작동하기 시작하려면 수동으로 다시 앱을 다시 열어야 합니다.
+   - iOS 및 macOS에서 FCM 및 APN과 통합하려면 프로젝트를 올바르게 설정 해야 합니다.
+   - 웹에서는, "웹 푸시 인증서" 키를 사용하여 토큰을 요청`(getToken)`해야 합니다.
+7. 권한 요청(Web 과 Apple 만)
+   iOS, macOS 및 웹에서 FCM 페이로드를 기기에서 수신하려면 먼저 사용자의 허가를 받아야 합니다.  
+   Android 애플리케이션은 권한을 요청할 필요가 없습니다.
+
+```dart
+FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+NotificationSettings settings = await messaging.requestPermission(
+  // NotificationSettings 클래스는 사용자의 결정에 대한 세부 정보를 제공
+  alert: true,
+  announcement: false,
+  badge: true,
+  carPlay: false,
+  criticalAlert: false,
+  provisional: false,
+  sound: true,
+);
+
+// 사용자에게 부여된 권한
+print('User granted permission: ${settings.authorizationStatus}');
+```
+
+- 위의 `authorizationStatus`
+  `authorized`: 사용자가 권한을 부여했습니다.
+  `denied`: 사용자가 권한을 거부했습니다.
+  `notDetermined`: 사용자가 아직 권한 부여 여부를 선택하지 않았습니다.
+  `provisional`: 사용자가 임시 권한을 부여했습니다
+
+  안드로이드에서는 authorizationStatus 는 현재 장치에서 enabled, disabled, 지원되는지 여부를 return 한다.
+
+8. 메시지 처리
+   권한이 부여되고 다양한 유형의 장치 상태가 이해되면 이제 애플리케이션에서 FCM 을 처리할 수 있다.
+
+   - 메세지 유형 (= 페이로드) 에 따라 다르게 처리함
+
+   1. 알림 전용 메시지(가시적인 알림 제공)
+   2. 데이터 전용 메시지(무음 메시지, 낮은 우선순위로 간주되나 FCM 페이로드에 추가 속성을 보내 우선순위 높일 수 있음)
+   3. 알림 및 데이터 메시지
+
+9. 로컬 노티피케이션 및 백그라운드 패키지 설치
 
 ## ios 의 APNs(Apple Push Notification service) 를 사용하는 이유와 작동 원리
 
@@ -116,3 +169,15 @@ manifest 의 패키지 네임은 언제 사용될까?
 4. 앱에서 요구하는 하드웨어와 소프트웨어 특징
 
 https://readystory.tistory.com/187
+
+# 포그라운드 알림
+
+애플리케이션 위에 잠시 동안 표시되는 알림이며 중요한 이벤트에 사용해야 한다.
+
+Android와 iOS는 애플리케이션이 포그라운드에 있는 동안 알림을 처리할 때 다른 동작을 가지므로 개발하는 동안 이를 염두.
+
+### 안드로이드 포그라운드 알림
+
+main.dart 에 어느 정도 설명을 붙여놓았고  
+Manifest 파일도 수정해야 한다.  
+https://firebase.google.com/docs/cloud-messaging/android/client#manifest
