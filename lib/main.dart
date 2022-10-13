@@ -72,6 +72,24 @@ void main() async {
   
   */
 
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+// initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+  // final DarwinInitializationSettings initializationSettingsDarwin =
+  //     DarwinInitializationSettings(onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+  // final LinuxInitializationSettings initializationSettingsLinux =
+  //     LinuxInitializationSettings(defaultActionName: 'Open notification');
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+    // iOS: initializationSettingsDarwin,
+    // macOS: initializationSettingsDarwin,
+    // linux: initializationSettingsLinux);
+  );
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+  );
+
   // 1. Create a new AndroidNotificationChannel instance:
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
     'high_importance_channel', // id
@@ -81,8 +99,12 @@ void main() async {
   );
 
   // 2. create the channel on the device (if a channel with an id already exists, it will be updated):
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  //     FlutterLocalNotificationsPlugin(); // 위에 초기화할 때 선언
+  // FlutterLocalNotificationsPlugin 는 모든 플랫폼에 대한 추상화를 제공하는 것이 목표 --> 플랫폼별 메서드를 노출하지 않고 플랫폼별 구성이 데이터로 전달
 
+  // 특정한 플랫폼 구성은 resolvePlatfromSpecificImplementation
+  // 사용 예로, iOS 에서 권한 요청할 때 제공되기도 한다
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel); // 1 에서 만든 channel
@@ -111,6 +133,10 @@ void main() async {
           ));
     }
   });
+
+  final token = await FirebaseMessaging.instance.getToken();
+
+  print("token : ${token ?? 'token NULL!'}");
 
   runApp(const MyApp());
 }
