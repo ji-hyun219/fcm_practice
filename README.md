@@ -209,3 +209,42 @@ onBackgroundMeassage handler 를 처리할 때 몇 가지 유의할 점이 있�
 전달되는 데이터 전용 메시지에 의존해서는 안 됩니다.  
 다음 번에 사용자가 앱을 열 때 데이터를 표시할 준비가 되도록 데이터를 미리 가져오는 등 애플리케이션의 중요하지 않은 기능을 지원하는 데만 사용해야 합니다.  
 메시지가 전달되지 않으면 앱이 오픈에 계속 작동하고 데이터를 가져옵니다.
+
+## ios APNs 인증 과정
+
+1. identifier 클릭해서 앱 추가
+2. `푸시노티피케이션`쪽 보면 `configure` 버튼 옆에 `인증서(Certificate)` 가 0개임
+3. 인증서를 수동적으로 만들어줘야 한다
+4. 인증서 --> `개발용 SSL Certificate` 와 `배포용 SSL Certificate` 이렇게 2개가 존재
+5. 만드는 방법은 2개 다 동일
+6. 암튼 선택하면 Upload a Certificate Signing Request 하라고 함
+7. CSR(CertificateSigningRequest) 만드는 방법은 `KeyChain.app` 을 켜서 `키체인 접근` > `인증서 지원` > `인증 기관에서 인증서 요청` 클릭
+8. CSR 파일을 업로드! > `continue` 하기
+9. 그러면 `.cer 파일`을 다운로드 받을 수 있다.
+10. 이 파일이 APNs 인증서.
+11. 파이어베이스에서 `APNs 인증 키`와 `APNs 인증서` 를 업로드해야 함
+    /////////////////////////// 인증서 ///////////////////////////
+12. 인증서 파일을 클릭해서 `내보내기` 클릭 (이때 `p12 포맷`으로 설정)
+13. p12 파일을 추출할 수 있음
+14. 파이어베이스에서 APN 인증서 업로드할 때 13에서 추출한 파일을 업로드
+    /////////////////////////// 인증키 ///////////////////////////
+15. apple developer 사이트에서 keys 항목 클릭
+16. key 생성
+17. 파이어베이스에 `APN 인증 키` 부분에다가 업로드
+18. https://www.youtube.com/watch?v=ytT65m_CjXU&list=LL&index=9 <-- 여기서 10분 6초부터 시작
+
+??? 'push notification 이 없다' --> 프로비저닝 프로필 생성해야 하나 --> 맞다!  
+https://medium.com/jinshine-%EA%B8%B0%EC%88%A0-%EB%B8%94%EB%A1%9C%EA%B7%B8/%EC%BD%94%EB%93%9C%EC%82%AC%EC%9D%B4%EB%8B%9D-%EC%9D%B8%EC%A6%9D%EC%84%9C-%ED%94%84%EB%A1%9C%EB%B9%84%EC%A0%80%EB%8B%9D-%ED%94%84%EB%A1%9C%ED%8C%8C%EC%9D%BC%EC%9D%B4%EB%9E%80-2bd2c652d00f
+
+19. 프로비저닝 프로필 생성 후, xcode 에서 `'Automatically manage signing'` 을 해제해서 수동으로 import 해주면 된다.
+20. 그 후 xcode 에서 `'push notification'` 과 `'background modes'` 를 선택해서 capabiility 를 활성화 시켜준다.  
+    (알아둬야 할 것은 프로비저닝 프로필에서 `push notification` 을 활성화 시켜줬다고 해서 업데이트 된게 아니라 따로 xcode 에서 또 capability 를 활성화 시켜줘야 하는데
+    그 이유는 `프로비저닝 프로필`은 현재 내 플젝에서 사용하겠다고 선택한 Capability 목록을 담고 있는게 아니라 `선택가능한/지원가능한 Capability 목록`을 담고 있기 때문이다.)  
+    https://eunjin3786.tistory.com/373
+
+## 프로비저닝 프로필
+
+인증서를 발급받으면 애플에서 인증을 한 개발자가 된 개발자가 된 것.  
+하지만 앱을 사인(sign)할 수 있도록 허락을 받은 상태이지, 기기가 또 나를 (개발자)를 신뢰하고 있는지를 알아야만 설치를 시켜줌  
+지금 만든 애플 인증서와 iOS 기기를 연결시켜주어야 하는데 이것을 프로비저닝 프로파일이라고 함  
+프로비저닝 프로파일은 `app id`, `certificate`, `device` 정보를 가지고 있어, iOS 기기 애플 인증서를 연결해주는 역할
