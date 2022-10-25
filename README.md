@@ -248,3 +248,10 @@ https://medium.com/jinshine-%EA%B8%B0%EC%88%A0-%EB%B8%94%EB%A1%9C%EA%B7%B8/%EC%B
 하지만 앱을 사인(sign)할 수 있도록 허락을 받은 상태이지, 기기가 또 나를 (개발자)를 신뢰하고 있는지를 알아야만 설치를 시켜줌  
 지금 만든 애플 인증서와 iOS 기기를 연결시켜주어야 하는데 이것을 프로비저닝 프로파일이라고 함  
 프로비저닝 프로파일은 `app id`, `certificate`, `device` 정보를 가지고 있어, iOS 기기 애플 인증서를 연결해주는 역할
+
+## APNS device token not set before retrieving FCM Token for Sender ID '\***\*\*\*\***'.
+
+Notifications to this FCM Token will not be delivered over APNS. Be sure to re-retrieve the FCM token once the APNS device token is set.  
+iOS -> 두번째 켰을 때는 정상적으로 실행됨.  
+AOS 에도 동일하게 첫번째에는 에러가, 두번째부터는 잘되었음  
+`TODO`: 원인이 무엇인지 알아봐야 함

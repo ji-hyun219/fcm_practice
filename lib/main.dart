@@ -47,6 +47,37 @@ void main() async {
     */
   });
 
+  // ios 권한 설정
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
+
+  // On Apple based platforms,
+  // once a permission request has been handled by the user (authorized or denied),
+  // it is not possible to re-request permission.
+  // The user must instead update permission via the device Settings UI:
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    print('User granted permission');
+  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    print('User granted provisional permission');
+  } else {
+    print('User declined or has not accepted permission');
+  }
+
+  // ios 12 이상의 기기는 임시 승인을 이용할 수 있다.
+  // Provisional authorization == 임시 승인
+  // 이러한 유형의 권한 시스템을 사용하면 사용자에게 대화 상자를 표시하지 않고 즉시 알림 권한을 부여할 수 있습니다.
+  // 권한은 알림이 조용히 표시되도록 허용합니다
+  // 장치에 알림이 표시되면 사용자에게 알림을 계속 조용히 수신할지, 전체 알림 권한을 활성화할지 또는 끌지 묻는 몇 가지 작업이 표시됩니다(아래 그림 참고)
+  // https://firebase.flutter.dev/docs/messaging/permissions
+  // NotificationSettings settings = await messaging.getNotificationSettings();
+
   // ios 포그라운드 알림 활성화 (원래 default 값: flase)
   await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
     alert: true, // Required to display a heads up notification
@@ -76,15 +107,14 @@ void main() async {
 // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
-  // final DarwinInitializationSettings initializationSettingsDarwin =
-  //     DarwinInitializationSettings(onDidReceiveLocalNotification: onDidReceiveLocalNotification);
-  // final LinuxInitializationSettings initializationSettingsLinux =
-  //     LinuxInitializationSettings(defaultActionName: 'Open notification');
+  const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
+    requestSoundPermission: false,
+    requestBadgePermission: false,
+    requestAlertPermission: false,
+  );
   const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
-    // iOS: initializationSettingsDarwin,
-    // macOS: initializationSettingsDarwin,
-    // linux: initializationSettingsLinux);
+    iOS: initializationSettingsIOS,
   );
   await flutterLocalNotificationsPlugin.initialize(
     initializationSettings,
@@ -112,6 +142,9 @@ void main() async {
   // 3. 생성되면 이제 default FCM channel 이 아닌 자체 채널을 사용할 수있도록 업데이트 할 수 있다.
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    // 자체 애플리케이션이 포그라운드에 있는 경우 Firebase Android SDK는 설정된 알림 채널에 관계없이 FCM 알림 표시를 차단합니다.
+    // 그러나 스트림을 통해 들어오는 알림 메시지를 처리하고 다음 을 사용하여 사용자 지정 로컬 알림을 만들 수 있습니다
+    // flutter_local_notifications.
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
