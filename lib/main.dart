@@ -128,6 +128,14 @@ void main() async {
     importance: Importance.max,
   );
 
+  // 1번 번외 -> Topic
+  const AndroidNotificationChannel topicChannel = AndroidNotificationChannel(
+    'topic_id', // id
+    'topic_title', // title
+    description: 'Topic test',
+    importance: Importance.max,
+  );
+
   // 2. create the channel on the device (if a channel with an id already exists, it will be updated):
   // final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   //     FlutterLocalNotificationsPlugin(); // 위에 초기화할 때 선언
@@ -139,8 +147,11 @@ void main() async {
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel); // 1 에서 만든 channel
 
-  // 3. 생성되면 이제 default FCM channel 이 아닌 자체 채널을 사용할 수있도록 업데이트 할 수 있다.
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(topicChannel);
 
+  // 3. 생성되면 이제 default FCM channel 이 아닌 자체 채널을 사용할 수있도록 업데이트 할 수 있다.
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     // 자체 애플리케이션이 포그라운드에 있는 경우 Firebase Android SDK는 설정된 알림 채널에 관계없이 FCM 알림 표시를 차단합니다.
     // 그러나 스트림을 통해 들어오는 알림 메시지를 처리하고 다음 을 사용하여 사용자 지정 로컬 알림을 만들 수 있습니다
@@ -168,6 +179,30 @@ void main() async {
   });
 
   final token = await FirebaseMessaging.instance.getToken();
+
+  // Future<void> subscribeToTopic() async {
+  await FirebaseMessaging.instance.subscribeToTopic("topic").then((value) => print('Topic 구독 성공!!!!'));
+
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    RemoteNotification? notification = message.notification;
+    AndroidNotification? android = message.notification?.android;
+    if (notification != null && android != null) {
+      flutterLocalNotificationsPlugin.show(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              topicChannel.id,
+              topicChannel.name,
+              channelDescription: topicChannel.description,
+              icon: android.smallIcon,
+              // other properties...
+            ),
+          ));
+    }
+  });
+  // }
 
   print("token : ${token ?? 'token NULL!'}");
 
@@ -229,7 +264,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
-        tooltip: 'Increment',
+        tooltip: '구독',
         child: const Icon(Icons.add),
       ),
     );

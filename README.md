@@ -255,3 +255,9 @@ Notifications to this FCM Token will not be delivered over APNS. Be sure to re-r
 iOS -> 두번째 켰을 때는 정상적으로 실행됨.  
 AOS 에도 동일하게 첫번째에는 에러가, 두번째부터는 잘되었음  
 `TODO`: 원인이 무엇인지 알아봐야 함
+
+# 주제에 대한 클라이언트 구독
+
+when a user is subscribed to a particular topic, that user will get notified when push notification is sent to that topic
+
+사용자가 특정 주제를 구독하면 해당 주제에 푸시 알림이 전송될 때 해당 사용자에게 알림이 전송됩니다.
