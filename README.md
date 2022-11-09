@@ -261,3 +261,67 @@ AOS 에도 동일하게 첫번째에는 에러가, 두번째부터는 잘되었�
 when a user is subscribed to a particular topic, that user will get notified when push notification is sent to that topic
 
 사용자가 특정 주제를 구독하면 해당 주제에 푸시 알림이 전송될 때 해당 사용자에게 알림이 전송됩니다.
+
+# Handling Interaction
+
+알림은 가시적 신호이므로 사용자가 알림과 상호작용하는 것이 일반적입니다(누름). Android 및 iOS의 default 동작은 애플리케이션을 여는 것입니다.  
+만약 시작될 때 애플리케이션이 종료되어 있으면 앱이 시작되고, 만약 앱이 백그라운드에 있으면 포그라운드로 가져옵니다.
+
+알림 내용에 따라 응용 프로그램이 열릴 때 사용자 상호 작용을 처리할 수 있습니다.  
+예를 들어 알림을 통해 새 채팅 메시지가 전송되고 사용자가 이를 누르면 애플리케이션이 열릴 때 특정 대화를 열 수 있습니다.
+
+패키지는 이 firebase-messaging 상호 작용을 처리하는 두 가지 방법을 제공합니다.
+
+1. `getInitialMessage()`: 애플리케이션이 종료된 상태에서 열리면 Future가 포함된 RemoteMessage 반환됩니다. 소모되면 RemoteMessage 제거됩니다.
+2. `onMessageOpendedApp`: 애플리케이션이 백그라운드 상태에서 열릴 때 RemoteMessage 를 쓰는 Stream 입니다.
+
+사용자의 원활한 UX 를 위해 두 시나리오를 모두 처리하는 것이 좋습니다. 아래 코드 예제에서는 이를 달성하는 방법을 간략하게 설명합니다.
+
+```dart
+class Application extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _Application();
+}
+
+class _Application extends State<Application> {
+  // It is assumed that all messages contain a data field with the key 'type'
+  Future<void> setupInteractedMessage() async {
+    // Get any messages which caused the application to open from
+    // a terminated state.
+    RemoteMessage? initialMessage =
+        await FirebaseMessaging.instance.getInitialMessage();
+
+    // If the message also contains a data property with a "type" of "chat",
+    // navigate to a chat screen
+    if (initialMessage != null) {
+      _handleMessage(initialMessage);
+    }
+
+    // Also handle any interaction when the app is in the background via a
+    // Stream listener
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    if (message.data['type'] == 'chat') {
+      Navigator.pushNamed(context, '/chat',
+        arguments: ChatArguments(message),
+      );
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Run code required to handle interacted messages in an async function
+    // as initState() must not be async
+    setupInteractedMessage();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text("...");
+  }
+}
+```
